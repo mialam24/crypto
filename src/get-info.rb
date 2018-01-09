@@ -9,8 +9,19 @@ info_csv = CSV.generate do |csv|
   csv << info_json[0].keys
 
   info_json.each do |hash|
-    csv << hash.values
+    crypto_id = hash.values[0]
+    puts hash.values[3] + ' ' + crypto_id
+
+    raw_html = HTTParty.get("https://coinmarketcap.com/currencies/#{crypto_id}/").body
+    File.write('temp.txt', raw_html)
+    proc_html = `grep '/exchanges' temp.txt | sed -e 's/<td>[^>]*>//g' -e 's/<.*//' | sort -f | uniq -u`
+
+    exchanges = ('"' + proc_html.gsub(/\s{2,}/, ',') + '"').sub(/,/, '').sub(/,"/, '"')
+
+    csv << hash.values.push(exchanges)
   end
+
+  `rm temp.txt`
 end
 
 tz = TZInfo::Timezone.get('US/Pacific')
