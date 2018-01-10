@@ -14,7 +14,7 @@ info_csv = CSV.generate do |csv|
 
     raw_html = HTTParty.get("https://coinmarketcap.com/currencies/#{crypto_id}/").body
     File.write('temp.txt', raw_html)
-    proc_html = `grep '/exchanges' temp.txt | sed -e 's/<td>[^>]*>//g' -e 's/<.*//' | sort -f | uniq -u`
+    proc_html = `grep '/exchanges' temp.txt | sed -e 's/<td>[^>]*>//g' -e 's/<.*//' | sort -u`
 
     exchanges = ('"' + proc_html.gsub(/\s{2,}/, ',') + '"').sub(/,/, '').sub(/,"/, '"')
 
@@ -29,5 +29,6 @@ time = Time.now.
             getlocal(tz.current_period.offset.utc_total_offset).
             to_s.
             gsub(' -0800', '').
-            gsub(' ', '-')
+            gsub(' ', '-').
+            gsub('_', '-')
 File.write('all-crypto-' + time + '.csv', info_csv)
